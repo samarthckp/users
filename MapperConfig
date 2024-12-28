@@ -1,0 +1,7 @@
+ // Correct mapping for Location DTOs and entities
+ CreateMap<LocationCreateDto, Location>().ReverseMap();  // Item creation DTO to Location entity
+ CreateMap<LocationReadOnlyDto, Location>().ReverseMap();  // Item read-only DTO to Location entity
+
+ CreateMap<UserCreateDto, User>().ReverseMap();  // Item read-only DTO to Location entity
+ CreateMap<UserReadOnlyDto, User>().ReverseMap();  // Item read-only DTO to Location entity
+
