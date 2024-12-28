@@ -1,0 +1,44 @@
+
+    public virtual DbSet<User> Users { get; set; }
+
+
+
+
+ modelBuilder.Entity<User>(entity =>
+ {
+     // Set UserId as the Primary Key
+     entity.HasKey(e => e.UserId)
+           .HasName("PRIMARY");
+
+     // Ensure UserId is auto-incremented
+     entity.Property(e => e.UserId)
+           .HasColumnName("UserId")
+           .ValueGeneratedOnAdd(); // Enable Auto-Increment
+
+     // Configure UserName with max length
+     entity.Property(e => e.UserName)
+           .HasColumnName("UserName")
+           .HasMaxLength(50);
+
+     // Configure UserPassword with max length
+     entity.Property(e => e.UserPassword)
+           .HasColumnName("UserPassword")
+           .HasMaxLength(50);
+
+     // Configure ConfirmPassword with max length
+     entity.Property(e => e.ConfirmPassword)
+           .HasColumnName("ConfirmPassword")
+           .HasMaxLength(255);
+
+     // Configure CompanyId with max length
+     entity.Property(e => e.CompanyId)
+           .HasColumnName("CompanyId")
+           .HasMaxLength(10);
+     entity.Property(e => e.LocationId).HasColumnType("int(11)"); // Corrected locationId property type
+
+     entity
+           .HasOne(u => u.Location)
+           .WithMany(l => l.Users)
+           .HasForeignKey(u => u.LocationId)
+           .OnDelete(DeleteBehavior.Cascade);
+ });
