@@ -1,0 +1,23 @@
+    public virtual DbSet<Location> Locations { get; set; }
+
+
+
+modelBuilder.Entity<Location>(entity =>
+    {
+        entity.HasKey(e => e.LocationId).HasName("PRIMARY");
+        entity.ToTable("location"); ;
+        entity.Property(e => e.LocationId).ValueGeneratedOnAdd(); // Ensure auto-increment
+
+
+        entity.Property(e => e.Name).HasMaxLength(255);
+        entity.Property(e => e.LocationId)
+.ValueGeneratedNever()
+.HasColumnType("int(11)");
+        entity.Property(e => e.CompanyId)
+            .HasDefaultValueSql("'0'")
+            .HasColumnType("int(11)");
+        entity.Property(e => e.Description).HasMaxLength(255);
+        entity.Property(e => e.Name).HasMaxLength(255);
+        entity.Property(e => e.locationcode).HasMaxLength(255);
+
+    });
