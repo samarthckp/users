@@ -1,0 +1,189 @@
+﻿@page "/login"
+@using ERP_API.Moduls
+@using UI_ERP.Reusable
+@inject UI_ERP.Reusable.AuthenticationServices AuthService
+@inject NavigationManager Navigation
+@using System.Net.Http.Json;
+@inject HttpClient Http
+@inject HttpClient HttpClient
+ @inject NavigationManager Navigation 
+
+
+@if (users == null)
+{
+    <div>Loading...</div>
+}
+
+else
+{
+    <div Class="container">
+         <div class="row justify-content-center">
+        <div class="col-md-4 shadow p-4 rounded bg-white" style="margin-top: 10px;border:3px solid blue;">
+           
+        <div class="text-center">
+            @*  <div class="mt-5 p-5" style="box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); max-width: 400px; margin: 5px;background:#f0f0f0"> *@
+            <h2 style="  display: flex;padding:8px;color:#000;
+
+        justify-content: center; /* Centers horizontally */">
+                LOGIN
+            </h2>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <MudImage Fluid="true" Src="image003 (3).jpg" Class="rounded-lg" />
+                        </div>
+                    </div>
+            <MudForm @ref="form">
+                <div class="form-group">
+                    <label  style="margin-top:15px" for="Location">Location</label>
+                    <MudAutocomplete Class="auto" T="LocationReadOnlyDto" @bind-Value="SelectedLocation" Margin="Margin.Dense" Variant="Variant.Outlined"
+                                     SearchFunc="@SearchLocations" Strict="false" ToStringFunc="@(location => location == null ? string.Empty : location.Name)">
+                    </MudAutocomplete>
+                </div>
+                <div class="form-group">
+                    <label for="Username">User Name</label>
+                    <MudAutocomplete Class="auto" T="UserReadOnlyDto" @bind-Value="SelectedUser" Margin="Margin.Dense" Variant="Variant.Outlined"
+                                     SearchFunc="@SearchUsers" Strict="false" ToStringFunc="@(user => user == null ? string.Empty : user.UserName)" >
+                    </MudAutocomplete>
+                </div>
+                <div class="form-group">
+                    <label for="Passward">password</label>
+                    <MudTextField Class="auto" @bind-Value="Password" InputType="InputType.Password" Required="true" Margin="Margin.Dense" Variant="Variant.Outlined" />
+                </div>
+                <div class="loginbtn">
+                            <MudButton Class="shutter-button" @onclick="UserLogin" Variant="Variant.Filled" Style="margin-top:15px" Color="Color.Primary">Login</MudButton>
+                </div>
+
+                @if (!string.IsNullOrEmpty(loginMessage))
+                {
+                    <div class="alert alert-info mt-4" style="border-color: black;
+    background-color: #C6E7FF;">@loginMessage</div>
+                }
+            </MudForm>
+        </div>
+        </div>
+
+        </div>
+
+
+
+    </div>
+}
+
+
+
+@code {
+    private MudForm form;
+    private List<UserReadOnlyDto> users;
+    private List<LocationReadOnlyDto> locations;
+    private UserReadOnlyDto SelectedUser { get; set; }
+    private string Password { get; set; }
+    private string loginMessage;
+    private LocationReadOnlyDto SelectedLocation { get; set; }
+    private bool IsUsernameFieldDisabled => SelectedLocation == null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await HttpClient.GetFromJsonAsync<List<UserReadOnlyDto>>($"{Variable.API_URL}/api/users");
+        locations = await HttpClient.GetFromJsonAsync<List<LocationReadOnlyDto>>($"{Variable.API_URL}/api/Locations");
+    }
+
+    private async Task UserLogin()
+    {
+        // Ensure a location is selected
+        if (SelectedLocation == null)
+        {
+            loginMessage = "Please select a location.";
+            return;
+        }
+
+        // Ensure a user is selected
+        if (SelectedUser == null)
+        {
+            loginMessage = "Please select a user.";
+            return;
+        }
+
+        // Validate user credentials
+        if (SelectedUser.UserPassword != Password)
+        {
+            loginMessage = "Invalid password. Please try again.";
+            return;
+        }
+
+        // Validate user-location association
+        if (SelectedUser.LocationId != SelectedLocation.LocationId)
+        {
+            loginMessage = $"User '{SelectedUser.UserName}' is not associated with location '{SelectedLocation.Name}'.";
+            return;
+        }
+
+        // Perform login by checking credentials
+        bool isAuthenticated = await AuthService.LoginAsync(SelectedUser.UserId, Password, SelectedLocation.LocationId);
+        if (isAuthenticated)
+        {
+            Navigation.NavigateTo("/");
+            loginMessage = "Login successful.";
+            // Navigate to the home page
+        }
+        else
+        {
+            loginMessage = "Login unsuccessful. Please check your credentials.";
+        }
+    }
+
+
+    private Task<IEnumerable<LocationReadOnlyDto>> SearchLocations(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return Task.FromResult(locations.AsEnumerable());
+
+        return Task.FromResult(locations.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase)));
+    }
+    private Task<IEnumerable<UserReadOnlyDto>> SearchUsers(string value)
+    {
+        IEnumerable<UserReadOnlyDto> filteredUsers;
+
+        if (string.IsNullOrEmpty(value))
+        {
+            // If the search input value is empty or null, return all users or filtered users by location if SelectedLocation is not null
+            if (SelectedLocation != null)
+            {
+                filteredUsers = users.Where(u => u.LocationId == SelectedLocation.LocationId || u.UserId == 1);
+            }
+            else
+            {
+                filteredUsers = users;
+            }
+        }
+        else
+        {
+            // If there is a search input value, filter users by username containing the search value
+            // Also consider filtering by location if SelectedLocation is not null
+            if (SelectedLocation != null)
+            {
+                filteredUsers = users.Where(u => (u.LocationId == SelectedLocation.LocationId || u.UserId == 1) && u.UserName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+            }
+            else
+            {
+                filteredUsers = users.Where(u => u.UserName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+            }
+        }
+
+        return Task.FromResult(filteredUsers.AsEnumerable());
+    }
+    private string SelectedLocationName
+    {
+        get
+        {
+
+            if (SelectedUser != null && SelectedUser.LocationId.HasValue)
+            {
+                var location = locations.FirstOrDefault(loc => loc.LocationId == SelectedUser.LocationId);
+                return location?.Name ?? "Unknown";
+            }
+            return "Unknown";
+        }
+    }
+
+
+}
