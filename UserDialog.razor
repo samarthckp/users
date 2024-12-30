@@ -1,0 +1,130 @@
+﻿@using MudBlazor
+@using UI_ERP.Reusable
+@using ERP_API.Moduls
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IDialogService DialogService
+
+
+    <DialogContent Style="height: auto;">
+    <div class="d-flex justify-content-center align-items-center">
+        <MudForm @ref="form">
+            <div class="form-group mb-3">
+                <MudTextField @bind-Value="user.LocationId"
+                              Label="Id"
+                              Variant="Variant.Outlined"
+                              ReadOnly="isViewMode"
+                              Immediate="true"
+                              Margin="Margin.Dense" />
+            </div>
+
+            <div class="form-group mb-3">
+                <MudTextField Validation="@(new Func<string, IEnumerable<string>>(ValidateName))"
+                @bind-Value="@user.UserName" Label="User Name" Variant="Variant.Outlined" ReadOnly="isViewMode" Required="true" Immediate="true" Margin="Margin.Dense" />
+            </div>
+            <div class="form-group mb-3">
+                <MudTextField @bind-Value="@user.UserPassword" Label="Password" Variant="Variant.Outlined" Required="true" Immediate="true" ReadOnly="isViewMode" Margin="Margin.Dense" />
+            </div>
+            <MudTextField Validation="@(new Func<string, IEnumerable<string>>(ValidateConfirmPassword))"
+                          @bind-Value="@user.ConfirmPassword"
+                          Label="Confirm Password"
+                          Required="true"
+                          Immediate="true"
+                          Variant="Variant.Outlined"
+                          ReadOnly="isViewMode"
+                          Margin="Margin.Dense" />
+
+        </MudForm>
+    </div>
+       
+    </DialogContent>
+    <DialogActions  style="text-align: end">
+        <MudButton OnClick="Close" StartIcon="@Icons.Material.Filled.Close" Variant="Variant.Filled" Color="Color.Error" Class="m-2">Close</MudButton>
+        @if (!isViewMode)
+        {
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" OnClick="Submit" Class="m-2">Submit</MudButton>
+        }
+    </DialogActions>
+  
+
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public UserCreateDto user { get; set; }
+    [Parameter] public bool isViewMode { get; set; }
+    [Parameter] public List<UserReadOnlyDto> users { get; set; }
+    private MudForm form = new MudForm();
+
+    private void Close() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        try
+        {
+            if (form == null)
+            {
+                Snackbar.Add("Form is not initialized", Severity.Error);
+                return;
+            }
+
+            await form.Validate(); // Ensure validation is awaited
+
+            if (form.IsValid) // Proceed only if the form is valid
+            {
+                MudDialog?.Close(DialogResult.Ok(true)); // Close the dialog
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"An error occurred: {ex.Message}", Severity.Error);
+        }
+    }
+
+
+
+    private async Task OpenLocationDialog(UserReadOnlyDto user = null, bool isViewMode = false)
+    {
+        var parameters = new DialogParameters
+        {
+            { "user", user ?? new UserReadOnlyDto() },
+            { "IsViewMode", isViewMode }
+        };
+
+        await DialogService.ShowAsync<UserDialog>(
+            user == null ? "Add User" : (isViewMode ? "View User" : "Edit User"),
+            parameters,
+            new DialogOptions { FullScreen = true, CloseButton = true, MaxWidth = MaxWidth.Large }
+        );
+    }
+
+    private IEnumerable<string> ValidateName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            yield return "User Name is required";
+        else if (name.Length < 3)
+            yield return "User Name must be at least 3 characters";
+    }
+    private IEnumerable<string> ValidateConfirmPassword(string confirmPassword)
+    {
+        if (string.IsNullOrWhiteSpace(confirmPassword))
+            yield return "Confirm Password is required";
+        else if (confirmPassword != user.UserPassword)
+            yield return "Passwords do not match";
+    }
+
+}
+
+<style>
+    .custom-dialog {
+        border: 2px solid blue;
+    }
+
+    .mud-table-cell {
+        border-color: black !important;
+    }
+
+    .mud-table-root .mud-table-head .mud-table-cell {
+        border: 1px solid black;
+    }
+
+</style>
