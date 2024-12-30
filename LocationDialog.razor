@@ -1,0 +1,86 @@
+﻿@using MudBlazor
+@using ERP_API.Moduls
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public LocationCreateDto location { get; set; }
+    [Parameter] public bool isViewMode { get; set; }
+
+    private MudForm form;
+
+    private void Close() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        try
+        {
+            if (form == null)
+            {
+                Snackbar.Add("Form is not initialized", Severity.Error);
+                return;
+            }
+
+            await form.Validate();
+
+            if (form.IsValid)
+            {
+                MudDialog?.Close(DialogResult.Ok(true));
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"An error occurred: {ex.Message}", Severity.Error);
+            // Log exception if necessary
+        }
+    }
+
+  
+
+}
+<DialogContent Style="height:auto;">
+    <div class="d-flex justify-content-center align-items-center">
+        <MudForm @ref="form"> <!-- Ensure the form is wrapped in MudForm and its reference is set -->
+           
+                    <div class="col-md-12">
+                        <MudTextField @bind-Value="location.LocationId"
+                                      Label="Id"
+                                      Variant="Variant.Outlined"
+                                      ReadOnly="isViewMode"
+                                      Immediate="true"
+                                      Margin="Margin.Dense" />
+                    </div>
+                    <div class="col-md-12">
+                        <MudTextField @bind-Value="location.locationcode"
+                                      Label="locationcode"
+                                      Variant="Variant.Outlined"
+                                      ReadOnly="isViewMode"
+                                      Immediate="true"
+                                      Margin="Margin.Dense" />
+                    </div>
+                    <div class="col-md-12">
+                        <MudTextField @bind-Value="location.Name"
+                                      Label="Name"
+                                      Variant="Variant.Outlined"
+                                      ReadOnly="isViewMode"
+                                      Required="true"
+                                      Immediate="true"
+                                      Margin="Margin.Dense" />
+                    </div>
+        </MudForm>
+    </div>
+</DialogContent>
+<DialogActions style="display:flex;justify-content:end;text-align: end">
+    <MudButton OnClick="Close" StartIcon="@Icons.Material.Filled.Close" Variant="Variant.Filled" Color="Color.Error" Class="m-2">Close</MudButton>
+    @if (!isViewMode)
+    {
+        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" OnClick="Submit" Class="m-2">Submit</MudButton>
+    }
+</DialogActions>
+<style>
+    .mud-dialog{
+        border:3px solid blue;
+    }
+</style>
