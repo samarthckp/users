@@ -1,0 +1,59 @@
+﻿@using UI_ERP.Reusable
+@inject AuthenticationServices AuthService
+
+
+<MudNavMenu Margin="Margin.Dense" Color="Color.Primary" Bordered="true" Class="pa-2">
+   @*  <MudNavLink Href="/Dashboard" Icon="@Icons.Material.Filled.Dashboard" Match="NavLinkMatch.All">
+        Dashboard
+    </MudNavLink>
+ *@ 
+    <MudNavGroup Icon="@Icons.Material.Filled.ManageAccounts" Expanded="false" Title="Master">
+        <MudNavLink Href="/AddUser" Icon="fas fa-user-circle" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Users</MudNavLink>
+        <MudNavLink Href="/AddCustomer" Icon="fas fa-users" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Customers</MudNavLink>
+        <MudNavLink Href="/AddVendor" Icon="fas fa-briefcase" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Vendor</MudNavLink>
+        <MudNavLink Href="/AddCategory" Icon="fas fa-layer-group" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Cateory</MudNavLink>
+        <MudNavLink Href="/AddLocation" Icon="fas fa-map-marker-alt" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Location</MudNavLink>
+        <MudNavLink Href="/AddItem" Icon="fas fa-cube" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Items</MudNavLink>
+        <MudNavLink Href="/Addstore" Icon="fas fa-store" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Stores</MudNavLink>
+        <MudNavLink Href="/AddBagBox" Class="custom-nav-menu" Icon="fas fa-box" Match="NavLinkMatch.Prefix">Bag/Box</MudNavLink>
+        <MudNavLink Href="/companydetails" Icon="fas fa-briefcase" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Company Details</MudNavLink>
+    </MudNavGroup>
+  
+    
+    <MudNavGroup Icon="@Icons.Material.Filled.Inventory" Expanded="false" Title="Inventory">
+        <MudNavLink Href="/AddStockStatement" Icon="fa fa-list" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Stock Statement</MudNavLink>
+    </MudNavGroup>  
+
+
+    <MudNavGroup Icon="@Icons.Material.Filled.Description" Expanded="false" Title="Raw Material">
+        <MudNavLink Href="/AddMaterialIssue" Icon="fa fa-dolly" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Material Issue</MudNavLink>
+        <MudNavLink Href="/AddRawInwardMaterial" Icon="fa fa-arrow-down" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Inward Material</MudNavLink>
+        <MudNavLink Href="/AddRmLabelGeneration" Icon="fa fa-print" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Label Generation </MudNavLink>
+
+
+    </MudNavGroup>
+
+    <MudNavGroup Icon="@Icons.Material.Filled.LocalShipping" Title="Packing Material ">
+        <MudNavLink Href="/AddPmInwardMaterial" Icon="fa fa-arrow-down" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Inward Material</MudNavLink>
+        <MudNavLink Href="/AddPmMaterialIssue" Icon="fa fa-dolly" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Material Issue</MudNavLink>
+        <MudNavLink Href="/AddPurchaseorder" Icon="fa fa-shopping-cart" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Purchase Order</MudNavLink>
+        <MudNavLink Href="/PmLabelGeneration" Icon="fa fa-print" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">PM Label Generation</MudNavLink>
+    </MudNavGroup>
+
+    <MudNavGroup Icon="@Icons.Material.Filled.Warehouse" Title="Finished Goods ">
+        <MudNavLink Href="/AddFgInwardMaterial" Icon="fa fa-arrow-down" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Inward Material</MudNavLink>
+        <MudNavLink Href="/AddPackingSlip" Icon="fa fa-receipt" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Packing Slip</MudNavLink>
+        <MudNavLink Href="/AddFgLabelGeneration" Icon="fa fa-print" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Fg Label Generation</MudNavLink>
+       
+    </MudNavGroup>
+
+    <MudNavGroup Icon="@Icons.Material.Filled.Storage" Title="Asset Managements ">
+        <MudNavLink Href="/AddAmMaterialIssue" Icon="fa fa-dolly" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Material Issue</MudNavLink>
+
+
+        <MudNavLink Href="/AddAmInwardMaterial" Icon="fa fa-arrow-down" Class="custom-nav-menu" Match="NavLinkMatch.Prefix">Inward Material</MudNavLink>
+    </MudNavGroup>
+
+
+
+</MudNavMenu>
