@@ -1,0 +1,43 @@
+ modelBuilder.Entity<Rmmaterialissue>(entity =>
+ {
+
+     entity
+  .HasKey(e => e.matIssueId).HasName("PRIMARY");
+     entity
+         .ToTable("rmmaterialissue");
+     entity.Property(e => e.DateOfIssue)
+         .HasColumnType("datetime")
+         .HasColumnName("DateOfIssue");
+
+     entity.Property(e => e.IssNo)
+         .HasMaxLength(50);
+
+     entity.Property(e => e.FromStore).HasDefaultValueSql("'0'");
+     entity.Property(e => e.ToStore).HasDefaultValueSql("'0'");
+     entity.Property(e => e.StoreId).HasDefaultValueSql("'0'");
+     entity.HasMany(d => d.RmmaterialissueSubs).WithOne(p => p.Rmmaterialissue)
+    .HasForeignKey(p => p.matIssueId)
+    .OnDelete(DeleteBehavior.Cascade);
+ });
+
+
+
+  modelBuilder.Entity<RmmaterialissueSub>(entity =>
+  {
+      entity
+   .HasKey(e => e.matIssueSubId).HasName("PRIMARY");
+      entity
+          .ToTable("rmmaterialissueSub");
+
+      entity.HasIndex(e => e.ItemId, "ItemId");
+      entity.Property(e => e.BagsIssued)
+          .HasDefaultValueSql("'0'");
+
+      entity.Property(e => e.matIssueId).HasMaxLength(100);
+      entity.Property(e => e.BatchNo).HasMaxLength(100);
+      entity.Property(e => e.IssQty).HasDefaultValueSql("'0'");
+      entity.Property(e => e.ItemId).HasDefaultValueSql("'0'");
+      entity.Property(e => e.SlNo).HasDefaultValueSql("'0'");
+      entity.Property(e => e.TotalBags).HasDefaultValueSql("'0'");
+  });
+
