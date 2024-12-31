@@ -1,0 +1,56 @@
+modelBuilder.Entity<RawInwardMaterial>(entity =>
+{
+    entity
+   .HasKey(e => e.InMatId).HasName("PRIMARY");
+    entity
+        .ToTable("rawinwardmaterial");
+
+    // Ensure Id is auto-incremented (this is usually the default behavior for primary keys)
+    entity.Property(e => e.InMatId)
+        .ValueGeneratedOnAdd();  // This will ensure Id is auto-incremented
+
+    entity.Property(e => e.InvDate).HasColumnType("datetime");
+    entity.Property(e => e.InvNo).HasMaxLength(50);
+
+
+    entity.HasIndex(e => e.InMatId, "InMatId").IsUnique();
+
+
+
+    entity.Property(e => e.VendId).HasDefaultValueSql("'0'");
+    entity.Property(e => e.POId).HasDefaultValueSql("'0'");
+    entity.Property(e => e.StoreId).HasDefaultValueSql("'0'");
+
+    entity.Property(e => e.GRNDate).HasColumnType("datetime");
+    entity.Property(e => e.GRNNo).HasMaxLength(50);
+
+    entity.HasMany(d => d.RawInwardMaterialSubs).WithOne(p => p.RawInwardMaterial)
+   .HasForeignKey(p => p.InMatId)
+   .OnDelete(DeleteBehavior.Cascade);
+
+
+});
+
+
+
+
+modelBuilder.Entity<RawInwardMaterialSub>(entity =>
+{
+    entity.HasKey(e => e.InMatSubId).HasName("PRIMARY");
+    entity.ToTable("rawinwardmaterialsub");
+
+
+    entity.Property(e => e.ItemId).HasDefaultValueSql("'0'");
+
+
+    entity.Property(e => e.Qty).HasDefaultValueSql("'0'");
+
+    entity.Property(e => e.SlNo).HasDefaultValueSql("'0'");
+
+    entity.Property(e => e.NoOfBags).HasDefaultValueSql("'0'");
+
+    entity.Property(e => e.BatchNo).HasMaxLength(50);
+
+
+
+});
