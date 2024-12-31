@@ -1,0 +1,312 @@
+﻿@using ERP_API.Moduls
+@using MudBlazor
+@using UI_ERP.Reusable
+
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject HttpClient HttpClient
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public RmmaterialissueCreateOnly Rmmaterialissue { get; set; }
+    [Parameter] public List<ItemReadOnlyDto> Items { get; set; } = new List<ItemReadOnlyDto>();
+
+    [Parameter] public List<RmmaterialissueSubReadOnly> RmmaterialissueSub { get; set; } = new List<RmmaterialissueSubReadOnly>();
+
+
+    [Parameter] public List<StoreReadOnlyDto> Stores { get; set; } = new List<StoreReadOnlyDto>();
+
+    [Parameter] public List<UomReadOnlyDto> UOMs { get; set; } = new List<UomReadOnlyDto>();
+    private MudForm form = new MudForm();
+
+    [Parameter] public bool isViewMode { get; set; }
+
+
+
+
+    private void Close() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        try
+        {
+            if (form == null)
+            {
+                Snackbar.Add("Form is not initialized", Severity.Error);
+                return;
+            }
+
+            await form.Validate();
+
+            if (form.IsValid)
+            {
+                MudDialog?.Close(DialogResult.Ok(true));
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"An error occurred: {ex.Message}", Severity.Error);
+            // You might want to log the exception here as well
+        }
+    }
+
+
+
+
+
+    private void AddNewItem()
+    {
+        RmmaterialissueSub.Add(new RmmaterialissueSubReadOnly());
+    }
+
+    private void RemoveItemFromProduct(RmmaterialissueSubReadOnly item)
+    {
+        RmmaterialissueSub.Remove(item);
+    }
+
+
+    private string GetMeasureName(int? ItemId)
+    {
+        var item = Items.FirstOrDefault(i => i.ItemId == ItemId);
+        if (item != null)
+        {
+            var measurement = UOMs.FirstOrDefault(m => m.UomId == item.UomId);
+            return measurement != null ? measurement.UomName : string.Empty;
+        }
+        return string.Empty;
+    }
+
+
+
+    private async Task<IEnumerable<int?>> FilterStoreNames(string value)
+    {
+
+        await Task.Delay(5);
+
+
+        if (string.IsNullOrEmpty(value))
+            return Stores
+            .OrderBy(i => i.StoreName, StringComparer.OrdinalIgnoreCase) 
+            .Select(i => (int?)i.StoreId);
+
+
+
+        return Stores
+        .Where(i => i.StoreName != null && i.StoreName.Contains(value, StringComparison.InvariantCultureIgnoreCase))
+        .OrderBy(i => i.StoreName, StringComparer.OrdinalIgnoreCase) 
+        .Select(i => (int?)i.StoreId);
+    }
+
+    private string GetStoreName(int? StoreId)
+    {
+        var item = Stores.FirstOrDefault(i => i.StoreId == StoreId);
+        return item?.StoreName ?? string.Empty;
+    }
+
+
+
+
+
+
+    private async Task<IEnumerable<int?>> FilterItemCodes(string value, RmmaterialissueSubReadOnly currentItem)
+    {
+        await Task.Delay(5);
+
+        var filteredItemNames = Items;
+
+        if (string.IsNullOrEmpty(value))
+            return filteredItemNames
+                .OrderBy(p => p.ItemCode, StringComparer.OrdinalIgnoreCase)
+                .Select(p => (int?)p.ItemId);
+
+        return filteredItemNames
+            .Where(p => p.ItemCode != null && p.ItemCode.Contains(value, StringComparison.InvariantCultureIgnoreCase))
+            .OrderBy(p => p.ItemCode, StringComparer.OrdinalIgnoreCase)
+            .Select(p => (int?)p.ItemId);
+    }
+
+    private string GetItemCode(int? ItemId)
+    {
+        var filteredItemNames = Items;
+        var item = filteredItemNames.FirstOrDefault(p => p.ItemId == ItemId);
+        return item?.ItemCode ?? string.Empty;
+    }
+
+
+    private async Task<IEnumerable<int?>> FilterItemNames(string value, RmmaterialissueSubReadOnly currentItem)
+    {
+        await Task.Delay(5);
+
+        var filteredItemNames = Items;
+        if (string.IsNullOrEmpty(value))
+            return filteredItemNames
+                .OrderBy(p => p.ItemName, StringComparer.OrdinalIgnoreCase)
+                .Select(p => (int?)p.ItemId);
+
+        return filteredItemNames
+            .Where(p => p.ItemName != null && p.ItemName.Contains(value, StringComparison.InvariantCultureIgnoreCase))
+            .OrderBy(p => p.ItemName, StringComparer.OrdinalIgnoreCase)
+            .Select(p => (int?)p.ItemId);
+    }
+
+    private string GetItemName(int? Id)
+    {
+        var filteredItemNames = Items;
+        var item = filteredItemNames.FirstOrDefault(p => p.ItemId == Id);
+        return item?.ItemName ?? string.Empty;
+    }
+
+    
+}
+
+<DialogContent Style="max-height: 630px; overflow-y: scroll">
+        <MudForm @ref="form">
+            <div class="row mb-2">
+             <div class="col-md-12">
+                    @* <fieldset style="border: 1px solid #f1c169; opacity: 50; padding: inherit;"> *@
+                        @* <legend class="float-none w-auto" style="color: blue; font-size: medium;">D/O Details</legend> *@
+                    <div class="row mb-2 m-1">
+                        <div class="col-md-2">
+                            <MudTextField @bind-Value="@Rmmaterialissue.IssNo" Label="Issue No" Variant="Variant.Outlined" ReadOnly="isViewMode" Margin="Margin.Dense"  Required="true" Immediate="true"/>
+                        </div>
+                        <div class="col-md-2">
+                            <MudDatePicker @bind-Date="@Rmmaterialissue.DateOfIssue" Label="Issue Date" Variant="Variant.Outlined" ReadOnly="isViewMode" Margin="Margin.Dense" />
+                        </div>
+                       
+                        
+                        <div class="col-md-2">
+                            <MudAutocomplete T="int?"
+                                             @bind-Value="@Rmmaterialissue.ToStore"
+                                             SearchFunc="@FilterStoreNames"
+                                             ToStringFunc="@GetStoreName"
+                                             Label="From Store"
+                                             TextField="UnitCode"
+                                             id="UnitName"
+                                             Variant="Variant.Outlined"
+                                             Strict="false"
+                                             Margin="Margin.Dense" />
+
+                        </div>
+
+                        <div class="col-md-2">
+                            <MudAutocomplete T="int?"
+                                             @bind-Value="@Rmmaterialissue.FromStore"
+                                             SearchFunc="@FilterStoreNames"
+                                             ToStringFunc="@GetStoreName"
+                                             Label="To Store"
+                                             TextField="UnitCode"
+                                             id="UnitName"
+                                             Variant="Variant.Outlined"
+                                             Strict="false"
+                                             Margin="Margin.Dense"
+                                             />
+
+                        </div>
+                        
+                     
+                        
+
+                       
+                        </div>
+                    @* </fieldset> *@
+                </div>
+            </div>
+        
+        
+        <div class="row m-1">
+                <div class="col-md-12">
+                <MudTable Items="RmmaterialissueSub" Height="300px" Virtualize="true" FixedHeader="true" Dense="true" HorizontalScrollbar="true" Hover="true" Breakpoint="Breakpoint.Sm" Striped="true" Bordered="true"
+                              CustomHeader="true" CustomFooter="true" HeaderClass="table-head-bordered" Class="displayTable"> 
+                        <HeaderContent>
+                            <MudTHeadRow Class="header-centered">
+                            <MudTh>Sl No</MudTh>
+                            
+                            <MudTh>Item Code</MudTh>
+                            <MudTh>Item Name</MudTh>
+                            <MudTh>UOM</MudTh>
+                            <MudTh>Quantity</MudTh>
+                            <MudTh>Stock Quantity</MudTh>
+                            <MudTh>Total Bags</MudTh>
+                            <MudTh>BatchNo</MudTh>
+                            <MudTh>Bags Issued</MudTh>
+
+                            </MudTHeadRow>
+                        </HeaderContent>
+                        <RowTemplate Context="rowContext">
+                        <MudTd Style="width: 100px;">@(RmmaterialissueSub.IndexOf(rowContext) + 1)</MudTd>
+                           
+                            <MudTd Style="width: 400px;">
+                                <MudAutocomplete T="int?"
+                                                 @bind-Value="rowContext.ItemId"
+                                                 SearchFunc="@(value => FilterItemCodes(value, rowContext))"
+                                                 ToStringFunc="@GetItemCode"
+                                                 Margin="Margin.Dense"
+                                                 Variant="Variant.Outlined"
+                                                 Strict="false"
+                                                 />
+                            </MudTd>
+                            <MudTd Style="width: 400px;">
+                                <MudAutocomplete T="int?"
+                                                 @bind-Value="rowContext.ItemId"
+                                                 SearchFunc="@(value => FilterItemNames(value, rowContext))"
+                                                 ToStringFunc="@GetItemName"
+                                                 Margin="Margin.Dense"
+                                                 Variant="Variant.Outlined"
+                                                 Strict="false"
+                                                 />
+                            </MudTd>
+                        <MudTd>
+                            @GetMeasureName(rowContext.ItemId)
+                        </MudTd>
+                            
+                            <MudTd Style="width: 200px;">
+                            <MudTextField @bind-Value="@rowContext.IssQty"  Variant="Variant.Outlined" ReadOnly="isViewMode" Margin="Margin.Dense" />
+                            </MudTd>
+                        <MudTd Style="width: 200px;">
+                            <MudTextField @bind-Value="@rowContext.StockQty"  Variant="Variant.Outlined" ReadOnly="isViewMode" Margin="Margin.Dense" />
+                        </MudTd>
+                        <MudTd Style="width: 200px;">
+                            <MudTextField @bind-Value="@rowContext.TotalBags"  Variant="Variant.Outlined" ReadOnly="isViewMode" Margin="Margin.Dense" />
+                        </MudTd>
+                        <MudTd Style="width: 200px;">
+                            <MudTextField @bind-Value="@rowContext.BatchNo"  Variant="Variant.Outlined" ReadOnly="isViewMode" Margin="Margin.Dense" />
+                        </MudTd>
+                        
+                        <MudTd Style="width: 200px;">
+                            <MudTextField @bind-Value="@rowContext.BagsIssued"  Variant="Variant.Outlined" ReadOnly="isViewMode" Margin="Margin.Dense" />
+                        </MudTd>
+        
+                        </RowTemplate>
+                        <FooterContent>
+                            <MudTd ColSpan="7">
+                                @if (!isViewMode)
+                                {
+                                    <MudTooltip Text="Add Item">
+                                        <MudIconButton Variant="Variant.Filled" Icon="@Icons.Material.Filled.Add" Color="Color.Primary" Style="padding: 0px;" @onclick="AddNewItem" />
+                                    </MudTooltip>
+                                }
+                            </MudTd>
+                        </FooterContent>
+                    </MudTable>
+                </div>
+            </div>
+
+
+    </MudForm>
+
+</DialogContent>
+<DialogActions style="text-align: end">
+    <MudButton OnClick="Close" StartIcon="@Icons.Material.Filled.Close" Variant="Variant.Filled" Color="Color.Error" Class="m-2">Close</MudButton>
+    @if (!isViewMode)
+    {
+        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" OnClick="Submit" Class="m-2">Submit</MudButton>
+    }
+</DialogActions>
+
+<style type="text/css">
+    .mud-table-head .header-centered th {
+        text-align: center;
+        font-size: 1.2em;
+    }
+</style>
